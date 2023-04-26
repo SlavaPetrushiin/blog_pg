@@ -38,7 +38,7 @@ export class UserRepo {
     try {
       const [createdUser] = await queryRunner.manager.query(
         `
-        INSERT INTO public."user" (login, email, "passwordHash")
+        INSERT INTO public."user" (login, email, "password_hash")
           VALUES ($1, $2, $3)
           RETURNING *;
       `,
@@ -47,10 +47,18 @@ export class UserRepo {
 
       await queryRunner.manager.query(
         `
-            INSERT INTO "email_confirmation" (code, expiration_date, "isConfirmed", "userId")
-              VALUES ($1, $2, $3, $4);
+          INSERT INTO "email_confirmation" ("user_id", code, expiration_date, "is_confirmed" )
+            VALUES ($1, $2, $3, $4);
       `,
-        ['asdasd', '2023-04-22T06:27:50.876Z', false, createdUser.id],
+        [createdUser.id, 'asdasd', '2023-04-22T06:27:50.876Z', false],
+      );
+
+      await queryRunner.manager.query(
+        `
+          INSERT INTO "ban_info" ("user_id")
+            VALUES ($1);
+      `,
+        [createdUser.id],
       );
 
       await queryRunner.commitTransaction();
@@ -75,45 +83,29 @@ export class UserRepo {
     return isDeleted > 0;
   }
 
-  async updateBanStatusUser(userId: number, banDto: UpdateUserBanDto) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  async updateBanStatusUser(
+    userId: number,
+    banDto: UpdateUserBanDto,
+    ISOdate: string,
+  ) {
+    const result = await this.dataSource.query(
+      `
+      with found_user AS (
+        SELECT * FROM public."user"
+        WHERE id = $1
+      ) 
+      INSERT INTO public."ban_info" (user_id, is_banned, ban_reason, ban_date) 
+        VALUES ((SELECT id FROM found_user), $2, $3, $4 )
+          ON CONFLICT (user_id) 
+          DO UPDATE SET is_banned = EXCLUDED.is_banned, ban_reason = EXCLUDED.ban_reason, ban_date = EXCLUDED.ban_date
+          RETURNING *;
+    `,
+      [userId, banDto.isBanned, banDto.banReason, ISOdate],
+    );
 
-    try {
-      const [foundUser] = await queryRunner.manager.query(
-        `
-        SELECT id FROM public."user"
-          WHERE id = $1
-      `,
-        [userId],
-      );
+    //row affected
 
-      if (!foundUser) {
-        await queryRunner.rollbackTransaction();
-        return null;
-      }
-
-      const [updatedBunStatus] = await queryRunner.manager.query(
-        `
-        INSERT INTO public."ban_info"("isBanned", "banReason") 
-          VALUES($1, $2)
-          WHERE "userId" = $3
-          ON CONFLICT target action;
-        `,
-        [banDto.isBanned, banDto.banReason, foundUser.id],
-      );
-
-      console.log({ foundUser });
-
-      await queryRunner.commitTransaction();
-      return true;
-    } catch (err) {
-      console.error(`Don't created user. Error: ${err}`);
-      await queryRunner.rollbackTransaction();
-    } finally {
-      await queryRunner.release();
-    }
+    console.log({ result });
   }
 
   // async onModuleInit() {

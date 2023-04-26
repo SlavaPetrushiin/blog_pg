@@ -10,8 +10,8 @@ import { EmailConfirmation } from './emailConfirmation.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('varchar', { length: 10 })
   login: string;
@@ -20,16 +20,16 @@ export class User {
   email: string;
 
   @Column('varchar', { length: 60 })
-  passwordHash: string;
+  password_hash: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @OneToOne(() => BanInfo, (banInfo) => banInfo.user, {
     cascade: true,
     eager: true,
   })
-  banInfo: BanInfo;
+  ban_info: BanInfo;
 
   @OneToOne(
     () => EmailConfirmation,
@@ -39,5 +39,5 @@ export class User {
       eager: true,
     },
   )
-  emailConfirmation: EmailConfirmation;
+  email_confirmation: EmailConfirmation;
 }

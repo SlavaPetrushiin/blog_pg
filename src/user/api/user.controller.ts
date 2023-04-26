@@ -9,6 +9,8 @@ import {
   HttpStatus,
   HttpCode,
   NotFoundException,
+  ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { UserService } from '../application/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -18,6 +20,7 @@ import { CreateUserCommand } from '../application/use-cases/create-user-use-case
 import { UserRepo } from '../infrastructure/user.repository';
 import { UserQueryRepo } from '../infrastructure/user-query.repository';
 import { UpdateBanStatusUserCommand } from '../application/use-cases/update-banStatus-user-use-case';
+import { AllEntitiesUser } from '../dto/allEntitiesUser.dto';
 
 @Controller('sa')
 export class UserController {
@@ -29,14 +32,19 @@ export class UserController {
   ) {}
 
   @Get('users')
-  findAll() {
-    return this.userQueryRepo.findAllUsers();
+  findAll(@Query() allEntitiesUser: AllEntitiesUser) {
+    return this.userQueryRepo.findAllUsers(allEntitiesUser);
   }
 
-  @Get('users/:id')
-  findOne(@Param('id') id: string) {
-    return 'find one user';
-  }
+  // @Get('users/:id')
+  // async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  //   const foundUser = await this.userQueryRepo.findUserById(id);
+
+  //   if (!foundUser) {
+  //     throw new NotFoundException();
+  //   }
+  //   return foundUser;
+  // }
 
   @HttpCode(HttpStatus.CREATED)
   @Post('users')
@@ -46,8 +54,14 @@ export class UserController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Put('users/:userId/ban')
-  update(@Param('userId') userId: string, @Body() dto: UpdateUserBanDto) {
-    const isUpdated = this.commandBus.execute(
+  async update(@Param('userId') userId: string, @Body() dto: UpdateUserBanDto) {
+    const foundUser = await this.userQueryRepo.findUserById(userId);
+
+    if (!foundUser) {
+      throw new NotFoundException();
+    }
+
+    const isUpdated = await this.commandBus.execute(
       new UpdateBanStatusUserCommand(userId, dto),
     );
     return;

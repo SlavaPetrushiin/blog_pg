@@ -9,21 +9,21 @@ import { User } from './user.entity';
 
 @Entity()
 export class EmailConfirmation {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   code: string;
 
   @Column({ name: 'expiration_date' })
-  expirationData: string;
+  expiration_date: string;
 
   @Column()
-  isConfirmed: boolean;
+  is_confirmed: boolean;
 
-  @OneToOne(() => User, (user) => user.emailConfirmation, {
+  @OneToOne(() => User, (user) => user.email_confirmation, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

@@ -4,26 +4,27 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
 export class BanInfo {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'boolean', default: false })
-  isBanned: boolean;
+  is_banned: boolean;
 
-  @Column()
-  banDate: string;
+  @Column({ nullable: true, default: null })
+  ban_date: string;
 
-  @Column('varchar', { length: 60 })
-  banReason: string;
+  @Column('varchar', { length: 60, nullable: true, default: null })
+  ban_reason: string;
 
-  @OneToOne(() => User, (user) => user.banInfo, {
+  @OneToOne(() => User, (user) => user.ban_info, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }
