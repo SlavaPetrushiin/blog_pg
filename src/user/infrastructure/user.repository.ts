@@ -1,10 +1,19 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { EmailConfirmation } from '../entities/emailConfirmation.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserBanDto } from '../dto/update-user-ban.dto';
+
+type EmailConfirmationModel = {
+  code: string;
+  isConfirmed: boolean;
+  expirationData: string;
+};
+
+type NewUserModel<T> = {
+  [P in keyof T as P extends 'password' ? `hash${Capitalize<P>}` : P]: T[P];
+} & EmailConfirmationModel;
 
 @Injectable()
 export class UserRepo {
@@ -13,53 +22,33 @@ export class UserRepo {
     @InjectDataSource() protected dataSource: DataSource,
   ) {}
 
-  async createUser(dto: CreateUserDto): Promise<number> {
-    // const idCreatedUser = await this.dataSource.query(
-    //   `
-    //     BEGIN;
-    //     with new_user as (
-    //       INSERT INTO public."user" (login, email, "passwordHash")
-    //       VALUES ($1, 'Mira@test.ru', '2343')
-    //           RETURNING id
-    //     )
-    //       INSERT INTO "email_confirmation" (code, expiration_date, "isConfirmed", "userId")
-    //         VALUES ('asdasda', '2023-04-22T06:27:50.876Z', false, (select id from new_user));
-    //     COMMIT;
-    //   `,
-    //   [dto.login],
-    // );
-
-    //console.log({ idCreatedUser });
-
+  async createUser(newUser: NewUserModel<CreateUserDto>): Promise<number> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
     try {
-      const [createdUser] = await queryRunner.manager.query(
-        `
+      const queryUser = `
         INSERT INTO public."user" (login, email, "password_hash")
           VALUES ($1, $2, $3)
           RETURNING *;
-      `,
-        [dto.login, dto.email, dto.login],
-      );
+      `;
+      const queryEmailConfirm = `INSERT INTO "email_confirmation" ("user_id", code, "expiration_date", "is_confirmed" ) VALUES ($1, $2, $3, $4);`;
+      const queryBunInfo = `INSERT INTO "ban_info" ("user_id") VALUES ($1);`;
 
-      await queryRunner.manager.query(
-        `
-          INSERT INTO "email_confirmation" ("user_id", code, expiration_date, "is_confirmed" )
-            VALUES ($1, $2, $3, $4);
-      `,
-        [createdUser.id, 'asdasd', '2023-04-22T06:27:50.876Z', false],
-      );
+      const [createdUser] = await queryRunner.manager.query(queryUser, [
+        newUser.login,
+        newUser.email,
+        newUser.hashPassword,
+      ]);
 
-      await queryRunner.manager.query(
-        `
-          INSERT INTO "ban_info" ("user_id")
-            VALUES ($1);
-      `,
-        [createdUser.id],
-      );
+      await queryRunner.manager.query(queryEmailConfirm, [
+        createdUser.id,
+        newUser.code,
+        newUser.expirationData,
+        newUser.isConfirmed,
+      ]);
+
+      await queryRunner.manager.query(queryBunInfo, [createdUser.id]);
 
       await queryRunner.commitTransaction();
       return createdUser.id;
@@ -84,28 +73,23 @@ export class UserRepo {
   }
 
   async updateBanStatusUser(
-    userId: number,
+    userId: string,
     banDto: UpdateUserBanDto,
     ISOdate: string,
   ) {
-    const result = await this.dataSource.query(
-      `
-      with found_user AS (
-        SELECT * FROM public."user"
-        WHERE id = $1
-      ) 
-      INSERT INTO public."ban_info" (user_id, is_banned, ban_reason, ban_date) 
-        VALUES ((SELECT id FROM found_user), $2, $3, $4 )
-          ON CONFLICT (user_id) 
-          DO UPDATE SET is_banned = EXCLUDED.is_banned, ban_reason = EXCLUDED.ban_reason, ban_date = EXCLUDED.ban_date
-          RETURNING *;
-    `,
-      [userId, banDto.isBanned, banDto.banReason, ISOdate],
-    );
+    const query = `
+        UPDATE public."ban_info" SET is_banned = $2, ban_reason = $3, ban_date = $4
+          WHERE user_id = $1
+      `;
 
-    //row affected
-
-    console.log({ result });
+    const result = await this.dataSource.query(query, [
+      userId,
+      banDto.isBanned,
+      banDto.banReason,
+      ISOdate,
+    ]);
+    console.log(result[1]);
+    return result[1] > 0;
   }
 
   // async onModuleInit() {

@@ -1,6 +1,6 @@
 export enum SortDirectionType {
-  asc = 'asc',
-  desc = 'desc',
+  asc = 'ASC',
+  desc = 'DESC',
 }
 
 export enum BanStatuses {

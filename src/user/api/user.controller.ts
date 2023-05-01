@@ -36,16 +36,6 @@ export class UserController {
     return this.userQueryRepo.findAllUsers(allEntitiesUser);
   }
 
-  // @Get('users/:id')
-  // async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-  //   const foundUser = await this.userQueryRepo.findUserById(id);
-
-  //   if (!foundUser) {
-  //     throw new NotFoundException();
-  //   }
-  //   return foundUser;
-  // }
-
   @HttpCode(HttpStatus.CREATED)
   @Post('users')
   create(@Body() dto: CreateUserDto) {
@@ -54,7 +44,10 @@ export class UserController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Put('users/:userId/ban')
-  async update(@Param('userId') userId: string, @Body() dto: UpdateUserBanDto) {
+  async update(
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() dto: UpdateUserBanDto,
+  ) {
     const foundUser = await this.userQueryRepo.findUserById(userId);
 
     if (!foundUser) {
@@ -64,6 +57,11 @@ export class UserController {
     const isUpdated = await this.commandBus.execute(
       new UpdateBanStatusUserCommand(userId, dto),
     );
+
+    if (!isUpdated) {
+      throw new NotFoundException();
+    }
+
     return;
   }
 

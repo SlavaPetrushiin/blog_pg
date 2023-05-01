@@ -26,7 +26,7 @@ export class AllEntitiesUser {
   @IsOptional()
   @Type(() => String)
   @IsString()
-  sortBy?: string = 'createdAt';
+  sortBy?: string = 'created_at';
 
   @IsOptional()
   @Type(() => String)

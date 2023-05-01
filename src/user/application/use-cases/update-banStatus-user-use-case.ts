@@ -18,7 +18,7 @@ export class UpdateBanStatusUserUseCase
   async execute(command: UpdateBanStatusUserCommand) {
     const { userId, dto } = command;
     return await this.userRepo.updateBanStatusUser(
-      +userId,
+      userId,
       dto,
       new Date().toISOString(),
     );
