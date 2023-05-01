@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
 
@@ -15,7 +16,7 @@ export class EmailConfirmation {
   @Column()
   code: string;
 
-  @Column({ name: 'expiration_date' })
+  @Column()
   expiration_date: string;
 
   @Column()

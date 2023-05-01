@@ -3,8 +3,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AllEntitiesUser } from '../dto/allEntitiesUser.dto';
 import { IUserDBModel } from '../entities/models/userModel';
-import { log } from 'console';
 import { BanStatuses } from '../types/types';
+import { IUserModelWithBanInfo } from '../entities/models/userModelWithBanInfo';
 
 @Injectable()
 export class UserQueryRepo {
@@ -83,6 +83,28 @@ export class UserQueryRepo {
     return result[0] ?? null;
   }
 
+  async findUserByLOginOrEmail(
+    emailOrLogin: string,
+  ): Promise<IUserModelWithBanInfo> {
+    const query = `
+      SELECT 
+      u.id, 
+      u.login,
+      u.email,
+      u.password_hash as "passwordHash",
+      u.created_at as "createdAt",
+      COALESCE(b.ban_date, '') as "banDate",
+      COALESCE(b.ban_reason, '') as "banReason",
+      b.is_banned as "isBanned"
+      FROM public."user" as u
+      LEFT JOIN public."ban_info" AS b ON b.user_id = u.id
+      WHERE u.login = $1 OR u.email = $1;
+    `;
+
+    const result = await this.dataSource.query(query, [emailOrLogin]);
+    return result[0] ?? null;
+  }
+
   async findAllUsers(query: AllEntitiesUser) {
     const filter = this._getFilter(query);
     const skip = (Number(query.pageNumber) - 1) * Number(query.pageSize);
@@ -106,8 +128,6 @@ export class UserQueryRepo {
 
     stdQuery += `ORDER BY ${query.sortBy} ${query.sortDirection} `;
     stdQuery += `LIMIT $1 OFFSET ${skip};`;
-
-    log(stdQuery);
 
     const foundUsers = await this.dataSource.query(stdQuery, [query.pageSize]);
 

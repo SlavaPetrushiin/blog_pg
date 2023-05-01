@@ -25,7 +25,6 @@ import { AllEntitiesUser } from '../dto/allEntitiesUser.dto';
 @Controller('sa')
 export class UserController {
   constructor(
-    private readonly userService: UserService,
     private commandBus: CommandBus,
     private userRepo: UserRepo,
     private userQueryRepo: UserQueryRepo,

@@ -7,6 +7,7 @@ import { getArrayErrors } from 'src/utils/getArrayErrors';
 import * as bcryptjs from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { add } from 'date-fns';
+import { Email } from './../../../email/email.service';
 
 const SALT = 10;
 export class CreateUserCommand {
@@ -18,6 +19,7 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
   constructor(
     protected userRepo: UserRepo,
     protected userQueryRepo: UserQueryRepo,
+    protected emailService: Email,
   ) {}
 
   async execute(command: CreateUserCommand) {
@@ -43,6 +45,14 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
       expirationData,
       isConfirmed: false,
     });
+
+    const emailTextWithCode = this.emailService.getMessageForSendingEmail(
+      'confirm-email?code',
+      code,
+      'registration',
+    );
+    this.emailService.sendEmail(email, emailTextWithCode);
+
     return result;
   }
 }
