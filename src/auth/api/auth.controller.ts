@@ -25,6 +25,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateUserCommand } from 'src/user/application/use-cases/create-user-use-case';
 import { SignInCommand } from '../application/use-cases/sign-in-use-case';
+import { SignOutCommand } from '../application/use-cases/sign-out-use-case';
 
 const MILLISECONDS_IN_HOUR = 3_600_000;
 const MAX_AGE_COOKIE_MILLISECONDS = 20 * MILLISECONDS_IN_HOUR; //MILLISECONDS_IN_HOUR * 20 //20_000;
@@ -73,16 +74,18 @@ export class AuthController {
     return res.status(200).send({ accessToken: tokens.accessToken });
   }
 
-  // @SkipThrottle(false)
-  // @UseGuards(RefreshTokenCustomGuard)
-  // @HttpCode(204)
-  // @Post('logout')
-  // async logout(@Request() req) {
-  //   const isDeleted = await this.authService.logout(req.user);
+  @SkipThrottle(false)
+  @UseGuards(RefreshTokenCustomGuard)
+  @HttpCode(204)
+  @Post('logout')
+  async logout(@Request() req) {
+    const isDeleted = await this.commandBus.execute(
+      new SignOutCommand(req.user),
+    );
 
-  //   if (!isDeleted) throw new UnauthorizedException();
-  //   return;
-  // }
+    if (!isDeleted) throw new UnauthorizedException();
+    return;
+  }
 
   // @SkipThrottle(false)
   // @HttpCode(HttpStatus.NO_CONTENT)

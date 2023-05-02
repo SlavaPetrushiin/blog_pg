@@ -6,7 +6,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class RefreshTokenCustomGuard implements CanActivate {
@@ -15,7 +15,6 @@ export class RefreshTokenCustomGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const request = context.switchToHttp().getRequest();
-
       const refreshToken = request.cookies.refreshToken;
       if (!refreshToken) throw new UnauthorizedException();
 

@@ -12,6 +12,8 @@ interface ILoginPayload {
   userId: string;
 }
 
+type LogoutPayload = Omit<ILoginPayload, 'ip' | 'title' | 'exp'>;
+
 @Injectable()
 export class AuthRepo {
   constructor(
@@ -21,10 +23,9 @@ export class AuthRepo {
   ) {}
 
   async login(payload: ILoginPayload) {
-    console.log('LOGIN');
     const query = `
-      INSERT INTO public."security" ("device_id", ip, title, "last_active_date", exp)
-        VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO public."security" ("device_id", ip, title, "last_active_date", exp, "user_id")
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
     `;
 
@@ -34,9 +35,21 @@ export class AuthRepo {
       payload.title,
       payload.lastActiveDate,
       payload.exp,
+      payload.userId,
     ]);
 
     return result;
+  }
+
+  async logout(payload: LogoutPayload): Promise<boolean> {
+    const query = ` DELETE FROM public."security" WHERE "device_id" = $1 AND "last_active_date" = $2 AND "user_id" = $3;`;
+    const result = await this.dataSource.query(query, [
+      payload.deviceId,
+      payload.lastActiveDate,
+      payload.userId,
+    ]);
+
+    return result[1] > 0;
   }
 
   // async onModuleInit() {

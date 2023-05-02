@@ -254,7 +254,7 @@ export class AuthService {
       emailOrLogin,
     );
 
-    if (foundUser.banDate) {
+    if (!foundUser || foundUser.banDate) {
       throw new UnauthorizedException();
     }
     if (!foundUser) {

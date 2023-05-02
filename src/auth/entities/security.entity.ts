@@ -27,6 +27,7 @@ export class Security {
 
   @ManyToOne(() => User, (u) => u.security, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
   @JoinColumn({ name: 'user_id' })
   user: User;

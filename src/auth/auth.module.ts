@@ -10,8 +10,9 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { AuthService } from './auth.service';
 import { SignInUseCase } from './application/use-cases/sign-in-use-case';
 import { JwtModule } from '@nestjs/jwt';
+import { SignOutUseCase } from './application/use-cases/sign-out-use-case';
 
-const useCases = [SignInUseCase];
+const useCases = [SignInUseCase, SignOutUseCase];
 
 @Module({
   imports: [
