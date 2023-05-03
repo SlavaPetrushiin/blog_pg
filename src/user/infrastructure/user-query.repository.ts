@@ -83,7 +83,7 @@ export class UserQueryRepo {
     return result[0] ?? null;
   }
 
-  async findUserByLOginOrEmail(
+  async findUserByLoginOrEmail(
     emailOrLogin: string,
   ): Promise<IUserModelWithBanInfo> {
     const query = `
@@ -95,9 +95,13 @@ export class UserQueryRepo {
       u.created_at as "createdAt",
       COALESCE(b.ban_date, '') as "banDate",
       COALESCE(b.ban_reason, '') as "banReason",
-      b.is_banned as "isBanned"
+      b.is_banned as "isBanned",
+      e.code,
+      e.expiration_date as "expirationDate",
+      e.is_confirmed as "isConfirmed"
       FROM public."user" as u
       LEFT JOIN public."ban_info" AS b ON b.user_id = u.id
+      LEFT JOIN public."email_confirmation" AS e ON e.user_id = u.id
       WHERE u.login = $1 OR u.email = $1;
     `;
 

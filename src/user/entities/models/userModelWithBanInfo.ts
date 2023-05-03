@@ -7,4 +7,7 @@ export interface IUserModelWithBanInfo {
   banDate: string;
   banReason: string;
   isBanned: string;
+  code: string;
+  expirationDate: string;
+  isConfirmed: boolean;
 }

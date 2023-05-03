@@ -250,7 +250,7 @@ export class AuthService {
       payload.login = emailOrLogin;
     }
 
-    const foundUser = await this.userQueryRepo.findUserByLOginOrEmail(
+    const foundUser = await this.userQueryRepo.findUserByLoginOrEmail(
       emailOrLogin,
     );
 

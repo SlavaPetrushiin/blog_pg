@@ -27,6 +27,7 @@ import { CreateUserCommand } from 'src/user/application/use-cases/create-user-us
 import { SignInCommand } from '../application/use-cases/sign-in-use-case';
 import { SignOutCommand } from '../application/use-cases/sign-out-use-case';
 import { RegistrationConfirmationCommand } from '../application/use-cases/registration-confirmation-use-case';
+import { ConfirmationResendingCommand } from '../application/use-cases/confirmation-resending-use-case';
 
 const MILLISECONDS_IN_HOUR = 3_600_000;
 const MAX_AGE_COOKIE_MILLISECONDS = 20 * MILLISECONDS_IN_HOUR; //MILLISECONDS_IN_HOUR * 20 //20_000;
@@ -101,21 +102,23 @@ export class AuthController {
     return;
   }
 
-  // @SkipThrottle(false)
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  // @Post('registration-email-resending')
-  // async confirmationEmailResending(
-  //   @Body() { email }: ConfirmationResendingDto,
-  //   @Res() response: Response,
-  // ) {
-  //   const result = await this.authService.confirmResending(email);
-  //   if (!result) {
-  //     throw new BadRequestException(
-  //       getArrayErrors('code', 'Не удалось обовить код'),
-  //     );
-  //   }
-  //   response.status(HttpStatus.NO_CONTENT).send();
-  // }
+  @SkipThrottle(false)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('registration-email-resending')
+  async confirmationEmailResending(
+    @Body() { email }: ConfirmationResendingDto,
+  ) {
+    const isUpdated = await this.commandBus.execute(
+      new ConfirmationResendingCommand(email),
+    );
+
+    if (!isUpdated) {
+      throw new BadRequestException(
+        getArrayErrors('code', 'Не удалось обовить код'),
+      );
+    }
+    return;
+  }
 
   // @SkipThrottle(false)
   // @HttpCode(HttpStatus.NO_CONTENT)

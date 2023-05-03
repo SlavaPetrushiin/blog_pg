@@ -13,11 +13,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { SignOutUseCase } from './application/use-cases/sign-out-use-case';
 import { RegistrationConfirmationUseCase } from './application/use-cases/registration-confirmation-use-case';
 import { ConfirmationRepo } from 'src/user/infrastructure/confirmation.repository';
+import { ConfirmationResendingUseCase } from './application/use-cases/confirmation-resending-use-case';
+import { Email } from 'src/email/email.service';
 
 const useCases = [
   SignInUseCase,
   SignOutUseCase,
   RegistrationConfirmationUseCase,
+  ConfirmationResendingUseCase,
 ];
 
 @Module({
@@ -33,6 +36,7 @@ const useCases = [
     ConfirmationRepo,
     LocalStrategy,
     AuthService,
+    Email,
   ],
   controllers: [AuthController],
 })
