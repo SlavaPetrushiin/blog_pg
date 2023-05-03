@@ -26,6 +26,7 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreateUserCommand } from 'src/user/application/use-cases/create-user-use-case';
 import { SignInCommand } from '../application/use-cases/sign-in-use-case';
 import { SignOutCommand } from '../application/use-cases/sign-out-use-case';
+import { RegistrationConfirmationCommand } from '../application/use-cases/registration-confirmation-use-case';
 
 const MILLISECONDS_IN_HOUR = 3_600_000;
 const MAX_AGE_COOKIE_MILLISECONDS = 20 * MILLISECONDS_IN_HOUR; //MILLISECONDS_IN_HOUR * 20 //20_000;
@@ -35,7 +36,6 @@ const MAX_AGE_COOKIE_MILLISECONDS = 20 * MILLISECONDS_IN_HOUR; //MILLISECONDS_IN
 export class AuthController {
   constructor(
     private commandBus: CommandBus,
-    //private readonly authService: AuthService,
     private readonly userQueryRepo: UserQueryRepo,
   ) {}
 
@@ -87,19 +87,19 @@ export class AuthController {
     return;
   }
 
-  // @SkipThrottle(false)
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  // @Post('registration-confirmation')
-  // async confirmationEmail(
-  //   @Body() confirmationDto: ConfirmationDto,
-  //   @Res() response: Response,
-  // ) {
-  //   const result = await this.authService.confirmCode(confirmationDto.code);
-  //   if (!result) {
-  //     throw new BadRequestException(getArrayErrors('code', 'Не валидный код'));
-  //   }
-  //   response.status(HttpStatus.NO_CONTENT).send();
-  // }
+  @SkipThrottle(false)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('registration-confirmation')
+  async confirmationEmail(@Body() confirmationDto: ConfirmationDto) {
+    const isConfirm = await this.commandBus.execute(
+      new RegistrationConfirmationCommand(confirmationDto),
+    );
+    if (!isConfirm) {
+      throw new BadRequestException(getArrayErrors('code', 'Не валидный код'));
+    }
+
+    return;
+  }
 
   // @SkipThrottle(false)
   // @HttpCode(HttpStatus.NO_CONTENT)

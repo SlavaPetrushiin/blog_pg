@@ -12,6 +12,7 @@ import { BanInfo } from './entities/banInfo.entity';
 import { EmailConfirmation } from './entities/emailConfirmation.entity';
 import { UpdateBanStatusUserUseCase } from './application/use-cases/update-banStatus-user-use-case';
 import { Security } from 'src/auth/entities/security.entity';
+import { ConfirmationRepo } from './infrastructure/confirmation.repository';
 
 const useCases = [CreateUserUseCase, UpdateBanStatusUserUseCase];
 
@@ -20,8 +21,21 @@ const useCases = [CreateUserUseCase, UpdateBanStatusUserUseCase];
     TypeOrmModule.forFeature([User, BanInfo, EmailConfirmation, Security]),
     CqrsModule,
   ],
-  providers: [...useCases, UserService, UserQueryRepo, UserRepo, Email],
+  providers: [
+    ...useCases,
+    UserService,
+    UserQueryRepo,
+    UserRepo,
+    ConfirmationRepo,
+    Email,
+  ],
   controllers: [UserController],
-  exports: [...useCases, UserService, UserQueryRepo, UserRepo],
+  exports: [
+    ...useCases,
+    UserService,
+    UserQueryRepo,
+    UserRepo,
+    ConfirmationRepo,
+  ],
 })
 export class UserModule {}

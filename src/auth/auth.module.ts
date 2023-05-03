@@ -11,8 +11,14 @@ import { AuthService } from './auth.service';
 import { SignInUseCase } from './application/use-cases/sign-in-use-case';
 import { JwtModule } from '@nestjs/jwt';
 import { SignOutUseCase } from './application/use-cases/sign-out-use-case';
+import { RegistrationConfirmationUseCase } from './application/use-cases/registration-confirmation-use-case';
+import { ConfirmationRepo } from 'src/user/infrastructure/confirmation.repository';
 
-const useCases = [SignInUseCase, SignOutUseCase];
+const useCases = [
+  SignInUseCase,
+  SignOutUseCase,
+  RegistrationConfirmationUseCase,
+];
 
 @Module({
   imports: [
@@ -20,7 +26,14 @@ const useCases = [SignInUseCase, SignOutUseCase];
     CqrsModule,
     JwtModule.register({}),
   ],
-  providers: [...useCases, UserQueryRepo, AuthRepo, LocalStrategy, AuthService],
+  providers: [
+    ...useCases,
+    UserQueryRepo,
+    AuthRepo,
+    ConfirmationRepo,
+    LocalStrategy,
+    AuthService,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}
