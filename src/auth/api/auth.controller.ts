@@ -28,6 +28,7 @@ import { SignInCommand } from '../application/use-cases/sign-in-use-case';
 import { SignOutCommand } from '../application/use-cases/sign-out-use-case';
 import { RegistrationConfirmationCommand } from '../application/use-cases/registration-confirmation-use-case';
 import { ConfirmationResendingCommand } from '../application/use-cases/confirmation-resending-use-case';
+import { UpdateRefreshTokenCommand } from '../application/use-cases/update-refresh-token-use-case';
 
 const MILLISECONDS_IN_HOUR = 3_600_000;
 const MAX_AGE_COOKIE_MILLISECONDS = 20 * MILLISECONDS_IN_HOUR; //MILLISECONDS_IN_HOUR * 20 //20_000;
@@ -69,8 +70,8 @@ export class AuthController {
 
     res.cookie('refreshToken', tokens.refreshToken, {
       maxAge: MAX_AGE_COOKIE_MILLISECONDS,
-      httpOnly: true,
-      secure: true,
+      // httpOnly: true,
+      // secure: true,
     });
     return res.status(200).send({ accessToken: tokens.accessToken });
   }
@@ -158,24 +159,24 @@ export class AuthController {
   //   response.status(HttpStatus.NO_CONTENT).send();
   // }
 
-  // @SkipThrottle(false)
-  // @HttpCode(HttpStatus.UNAUTHORIZED)
-  // //@UseGuards(RefreshTokenGuard)
-  // @UseGuards(RefreshTokenCustomGuard)
-  // @Post('refresh-token')
-  // async refreshToken(@Request() req, @Res() res) {
-  //   const user = req.user;
-  //   const tokens = await this.authService.updateRefreshToken(user);
+  @SkipThrottle(false)
+  @HttpCode(HttpStatus.UNAUTHORIZED)
+  @UseGuards(RefreshTokenCustomGuard)
+  @Post('refresh-token')
+  async refreshToken(@Request() req, @Res() res) {
+    const tokens = await this.commandBus.execute(
+      new UpdateRefreshTokenCommand(req.user),
+    );
 
-  //   if (!tokens) {
-  //     throw new UnauthorizedException();
-  //   }
+    if (!tokens) {
+      throw new UnauthorizedException();
+    }
 
-  //   res.cookie('refreshToken', tokens.refreshToken, {
-  //     maxAge: MAX_AGE_COOKIE_MILLISECONDS,
-  //     httpOnly: true,
-  //     secure: true,
-  //   });
-  //   return res.status(200).send({ accessToken: tokens.accessToken });
-  // }
+    res.cookie('refreshToken', tokens.refreshToken, {
+      maxAge: MAX_AGE_COOKIE_MILLISECONDS,
+      // httpOnly: true,
+      // secure: true,
+    });
+    return res.status(200).send({ accessToken: tokens.accessToken });
+  }
 }

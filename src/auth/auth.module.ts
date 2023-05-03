@@ -15,12 +15,14 @@ import { RegistrationConfirmationUseCase } from './application/use-cases/registr
 import { ConfirmationRepo } from 'src/user/infrastructure/confirmation.repository';
 import { ConfirmationResendingUseCase } from './application/use-cases/confirmation-resending-use-case';
 import { Email } from 'src/email/email.service';
+import { UpdateRefreshTokenUseCase } from './application/use-cases/update-refresh-token-use-case';
 
 const useCases = [
   SignInUseCase,
   SignOutUseCase,
   RegistrationConfirmationUseCase,
   ConfirmationResendingUseCase,
+  UpdateRefreshTokenUseCase,
 ];
 
 @Module({

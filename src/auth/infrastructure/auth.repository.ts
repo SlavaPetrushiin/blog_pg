@@ -12,6 +12,18 @@ interface ILoginPayload {
   userId: string;
 }
 
+interface IFindSessionPayload {
+  userId: string;
+  iat: string;
+  deviceId: string;
+}
+
+interface IUpdateSessionPayload {
+  deviceId: string;
+  lastActiveDate: string;
+  exp: string;
+}
+
 type LogoutPayload = Omit<ILoginPayload, 'ip' | 'title' | 'exp'>;
 
 @Injectable()
@@ -47,6 +59,36 @@ export class AuthRepo {
       payload.deviceId,
       payload.lastActiveDate,
       payload.userId,
+    ]);
+
+    return result[1] > 0;
+  }
+
+  async findSession(payload: IFindSessionPayload) {
+    const query = `
+      SELECT * FROM public."security"
+        WHERE device_id = $1 AND user_id = $2 AND last_active_date = $3;
+    `;
+
+    const result = await this.dataSource.query(query, [
+      payload.deviceId,
+      payload.userId,
+      payload.iat,
+    ]);
+    return result[0] ?? null;
+  }
+
+  async updateSession(payload: IUpdateSessionPayload): Promise<boolean> {
+    const query = `
+      UPDATE public.security
+        SET last_active_date = $1, exp = $2
+        WHERE device_id = $3
+    `;
+
+    const result = await this.dataSource.query(query, [
+      payload.lastActiveDate,
+      payload.exp,
+      payload.deviceId,
     ]);
 
     return result[1] > 0;
