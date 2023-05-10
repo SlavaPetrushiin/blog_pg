@@ -92,6 +92,28 @@ export class UserRepo {
     return result[1] > 0;
   }
 
+  async createOrUpdatePasswordRecovery(
+    recoveryCode: string,
+    userId: string,
+    dateExpired: string,
+  ): Promise<boolean> {
+    const query = `
+      INSERT INTO public."password_recovery"  (recovery_code, expiration_date)
+        VALUES($1,$2, $3) 
+        ON CONFLICT (user_id) 
+        DO 
+        UPDATE SET recovery_code = EXCLUDED.recovery_code, expiration_date = EXCLUDED.expiration_date, user_id = EXCLUDED.user_id
+    `;
+
+    const result = await this.dataSource.query(query, [
+      recoveryCode,
+      dateExpired,
+      userId,
+    ]);
+    console.log(result);
+    return result[1] > 0;
+  }
+
   // async onModuleInit() {
   //   const usersCount = await this.userModel.count();
   //   log({ usersCount });

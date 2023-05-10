@@ -13,12 +13,19 @@ import { EmailConfirmation } from './entities/emailConfirmation.entity';
 import { UpdateBanStatusUserUseCase } from './application/use-cases/update-banStatus-user-use-case';
 import { Security } from 'src/auth/entities/security.entity';
 import { ConfirmationRepo } from './infrastructure/confirmation.repository';
+import { PasswordRecovery } from './entities/passwordRecovery.entity';
 
 const useCases = [CreateUserUseCase, UpdateBanStatusUserUseCase];
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, BanInfo, EmailConfirmation, Security]),
+    TypeOrmModule.forFeature([
+      User,
+      BanInfo,
+      EmailConfirmation,
+      Security,
+      PasswordRecovery,
+    ]),
     CqrsModule,
   ],
   providers: [

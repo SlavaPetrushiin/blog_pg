@@ -29,6 +29,7 @@ import { SignOutCommand } from '../application/use-cases/sign-out-use-case';
 import { RegistrationConfirmationCommand } from '../application/use-cases/registration-confirmation-use-case';
 import { ConfirmationResendingCommand } from '../application/use-cases/confirmation-resending-use-case';
 import { UpdateRefreshTokenCommand } from '../application/use-cases/update-refresh-token-use-case';
+import { PasswordRecoveryCommand } from '../application/use-cases/password-recovery-use-case';
 
 const MILLISECONDS_IN_HOUR = 3_600_000;
 const MAX_AGE_COOKIE_MILLISECONDS = 20 * MILLISECONDS_IN_HOUR; //MILLISECONDS_IN_HOUR * 20 //20_000;
@@ -121,22 +122,22 @@ export class AuthController {
     return;
   }
 
-  // @SkipThrottle(false)
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  // @Post('password-recovery')
-  // async passwordRecovery(
-  //   @Body() { email }: ConfirmationResendingDto,
-  //   @Res() response: Response,
-  // ) {
-  //   const result = await this.authService.passwordRecovery(email);
-  //   if (!result) {
-  //     throw new BadRequestException(
-  //       getArrayErrors('code', 'Не удалось создать код на обновление пароля'),
-  //     );
-  //   }
+  @SkipThrottle(false)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('password-recovery')
+  async passwordRecovery(@Body() { email }: ConfirmationResendingDto) {
+    const isNewPassword = await this.commandBus.execute(
+      new PasswordRecoveryCommand(email),
+    );
 
-  //   response.status(HttpStatus.NO_CONTENT).send();
-  // }
+    if (!isNewPassword) {
+      throw new BadRequestException(
+        getArrayErrors('code', 'Не удалось создать код на обновление пароля'),
+      );
+    }
+
+    return;
+  }
 
   // @SkipThrottle(false)
   // @HttpCode(HttpStatus.NO_CONTENT)

@@ -16,6 +16,8 @@ import { ConfirmationRepo } from 'src/user/infrastructure/confirmation.repositor
 import { ConfirmationResendingUseCase } from './application/use-cases/confirmation-resending-use-case';
 import { Email } from 'src/email/email.service';
 import { UpdateRefreshTokenUseCase } from './application/use-cases/update-refresh-token-use-case';
+import { PasswordRecoveryUseCase } from './application/use-cases/password-recovery-use-case';
+import { UserRepo } from 'src/user/infrastructure/user.repository';
 
 const useCases = [
   SignInUseCase,
@@ -23,6 +25,7 @@ const useCases = [
   RegistrationConfirmationUseCase,
   ConfirmationResendingUseCase,
   UpdateRefreshTokenUseCase,
+  PasswordRecoveryUseCase,
 ];
 
 @Module({
@@ -34,6 +37,7 @@ const useCases = [
   providers: [
     ...useCases,
     UserQueryRepo,
+    UserRepo,
     AuthRepo,
     ConfirmationRepo,
     LocalStrategy,
