@@ -30,6 +30,7 @@ import { RegistrationConfirmationCommand } from '../application/use-cases/regist
 import { ConfirmationResendingCommand } from '../application/use-cases/confirmation-resending-use-case';
 import { UpdateRefreshTokenCommand } from '../application/use-cases/update-refresh-token-use-case';
 import { PasswordRecoveryCommand } from '../application/use-cases/password-recovery-use-case';
+import { PasswordUpdateCommand } from '../application/use-cases/password-update-use-case copy';
 
 const MILLISECONDS_IN_HOUR = 3_600_000;
 const MAX_AGE_COOKIE_MILLISECONDS = 20 * MILLISECONDS_IN_HOUR; //MILLISECONDS_IN_HOUR * 20 //20_000;
@@ -139,26 +140,23 @@ export class AuthController {
     return;
   }
 
-  // @SkipThrottle(false)
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  // @Post('new-password')
-  // async updatePassword(
-  //   @Body() recoveryPasswordDto: RecoveryPasswordDto,
-  //   @Res() response: Response,
-  // ) {
-  //   const { newPassword, recoveryCode } = recoveryPasswordDto;
-  //   const result = await this.authService.updatePassword(
-  //     newPassword,
-  //     recoveryCode,
-  //   );
-  //   if (!result) {
-  //     throw new BadRequestException(
-  //       getArrayErrors('code', 'Не удалось создать код на обновление пароля'),
-  //     );
-  //   }
+  @SkipThrottle(false)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('new-password')
+  async updatePassword(@Body() recoveryPasswordDto: RecoveryPasswordDto) {
+    const { newPassword, recoveryCode } = recoveryPasswordDto;
+    const isUpdated = await this.commandBus.execute(
+      new PasswordUpdateCommand(newPassword, recoveryCode),
+    );
 
-  //   response.status(HttpStatus.NO_CONTENT).send();
-  // }
+    if (!isUpdated) {
+      throw new BadRequestException(
+        getArrayErrors('code', 'Не удалось обновить пароль'),
+      );
+    }
+
+    return;
+  }
 
   @SkipThrottle(false)
   @HttpCode(HttpStatus.UNAUTHORIZED)

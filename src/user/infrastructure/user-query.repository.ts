@@ -5,6 +5,7 @@ import { AllEntitiesUser } from '../dto/allEntitiesUser.dto';
 import { IUserDBModel } from '../entities/models/userModel';
 import { BanStatuses } from '../types/types';
 import { IUserModelWithBanInfo } from '../entities/models/userModelWithBanInfo';
+import { IUserModelWithRecoveryCode } from '../entities/models/userModelWithRecoveryCode';
 
 @Injectable()
 export class UserQueryRepo {
@@ -146,5 +147,18 @@ export class UserQueryRepo {
         banReason: user.banReason,
       },
     }));
+  }
+
+  async findUserByRecoveryCode(
+    emailOrLogin: string,
+  ): Promise<IUserModelWithRecoveryCode> {
+    const query = `
+      SELECT p."recovery_code" AS "recoveryCode", p."expiration_date" as "expirationDate", p."user_id" AS "userID", u.login, u.email FROM public."password_recovery" AS p
+      JOIN public."user" AS u ON u.id = p."user_id"
+      WHERE p.recovery_code = $1;  
+    `;
+
+    const result = await this.dataSource.query(query, [emailOrLogin]);
+    return result[0] ?? null;
   }
 }

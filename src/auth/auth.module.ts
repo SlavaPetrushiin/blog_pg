@@ -18,6 +18,7 @@ import { Email } from 'src/email/email.service';
 import { UpdateRefreshTokenUseCase } from './application/use-cases/update-refresh-token-use-case';
 import { PasswordRecoveryUseCase } from './application/use-cases/password-recovery-use-case';
 import { UserRepo } from 'src/user/infrastructure/user.repository';
+import { PasswordUpdateUseCase } from './application/use-cases/password-update-use-case copy';
 
 const useCases = [
   SignInUseCase,
@@ -26,6 +27,7 @@ const useCases = [
   ConfirmationResendingUseCase,
   UpdateRefreshTokenUseCase,
   PasswordRecoveryUseCase,
+  PasswordUpdateUseCase,
 ];
 
 @Module({

@@ -88,7 +88,6 @@ export class UserRepo {
       banDto.banReason,
       ISOdate,
     ]);
-    console.log(result[1]);
     return result[1] > 0;
   }
 
@@ -98,11 +97,12 @@ export class UserRepo {
     dateExpired: string,
   ): Promise<boolean> {
     const query = `
-      INSERT INTO public."password_recovery"  (recovery_code, expiration_date)
-        VALUES($1,$2, $3) 
-        ON CONFLICT (user_id) 
+      INSERT INTO public."password_recovery"  ("recovery_code", "expiration_date", "user_id")
+        VALUES($1, $2, $3) 
+        ON CONFLICT ("user_id") 
         DO 
-        UPDATE SET recovery_code = EXCLUDED.recovery_code, expiration_date = EXCLUDED.expiration_date, user_id = EXCLUDED.user_id
+        UPDATE SET "recovery_code" = EXCLUDED.recovery_code, "expiration_date" = EXCLUDED.expiration_date, "user_id" = EXCLUDED.user_id
+        RETURNING *;
     `;
 
     const result = await this.dataSource.query(query, [
@@ -110,7 +110,18 @@ export class UserRepo {
       dateExpired,
       userId,
     ]);
-    console.log(result);
+
+    return !!result[0];
+  }
+
+  async updatePassword(password: string, userID: string): Promise<boolean> {
+    const query = `
+      UPDATE public."user" SET "password_hash" = $1
+        WHERE id = $2
+    `;
+
+    const result = await this.dataSource.query(query, [password, userID]);
+
     return result[1] > 0;
   }
 
