@@ -3,7 +3,6 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { JwtModule } from '@nestjs/jwt';
 import { Email } from './email/email.service';
 import { AuthModule } from './auth/auth.module';
 const configModule = ConfigModule.forRoot({
@@ -15,14 +14,8 @@ const configModule = ConfigModule.forRoot({
     configModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5433,
-      username: 'Admin_Wallets',
-      password: '488661632',
-      database: 'blogs',
-      autoLoadEntities: true,
-      synchronize: true,
-      entities: ['src/*.entity.ts'],
+      url: new ConfigService().get('PG_URL'),
+      ssl: true,
     }),
     MailerModule.forRootAsync({
       useFactory: async (config: ConfigService) => ({
